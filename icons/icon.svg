@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ROUTER Error Tracking">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d4ed8"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+    <mask id="gear-hole">
+      <rect width="512" height="512" fill="#fff"/>
+      <circle cx="256" cy="256" r="58" fill="#000"/>
+    </mask>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g fill="#fff" mask="url(#gear-hole)" transform="translate(256 256)">
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(0)"/>
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(45)"/>
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(90)"/>
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(135)"/>
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(180)"/>
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(225)"/>
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(270)"/>
+    <rect x="-25" y="-180" width="50" height="66" rx="10" transform="rotate(315)"/>
+    <circle r="132"/>
+  </g>
+</svg>
