@@ -115,10 +115,10 @@
   --bg-overlay: rgba(15, 23, 42, 0.55);
 
   --text-main: #0f172a;
-  --text-muted: #5b6b7f;
+  --text-muted: #475569;
   /* Slightly darker muted tone for small text on --bg-subtle (WCAG AA 4.5:1) */
-  --text-muted-strong: #4a586a;
-  --text-dim: #5b6b7f;
+  --text-muted-strong: #334155;
+  --text-dim: #334155;
   --text-inverse: #ffffff;
 
   --border-subtle: #e2e8f0;
@@ -5078,7 +5078,7 @@ pre, code { overflow-wrap: anywhere; }
     var dark = currentTheme === 'dark';
     return {
       dark: dark,
-      text: dark ? '#94a3b8' : '#5b6b7f',
+      text: dark ? '#94a3b8' : '#475569',
       strongText: dark ? '#f8fafc' : '#0f172a',
       grid: dark ? 'rgba(148, 163, 184, 0.14)' : 'rgba(148, 163, 184, 0.2)',
       border: dark ? '#1e293b' : '#ffffff',
@@ -5109,6 +5109,9 @@ pre, code { overflow-wrap: anywhere; }
     global.Chart.defaults.plugins.legend.labels.padding = 14;
     global.Chart.defaults.plugins.legend.labels.font = baseFont(11);
     global.Chart.defaults.plugins.tooltip.backgroundColor = colors.dark ? '#1e293b' : '#0f172a';
+    global.Chart.defaults.plugins.tooltip.titleColor = '#f8fafc';
+    global.Chart.defaults.plugins.tooltip.bodyColor = '#f8fafc';
+    global.Chart.defaults.plugins.tooltip.footerColor = '#f8fafc';
     global.Chart.defaults.plugins.tooltip.titleFont = baseFont(11, '600');
     global.Chart.defaults.plugins.tooltip.bodyFont = baseFont(11);
     global.Chart.defaults.plugins.tooltip.padding = 10;
@@ -5249,6 +5252,7 @@ pre, code { overflow-wrap: anywhere; }
                     text: label + ' (' + data.datasets[0].data[index] + ')',
                     fillStyle: data.datasets[0].backgroundColor[index],
                     strokeStyle: data.datasets[0].backgroundColor[index],
+                    fontColor: colors.text,
                     lineWidth: 0,
                     pointStyle: 'circle',
                     hidden: false,
