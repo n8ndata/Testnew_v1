@@ -63,6 +63,62 @@ var VALID = {
   statuses: ['รอดำเนินการ', 'กำลังตรวจสอบ', 'อบรมซ้ำแล้ว', 'ปิดงาน']
 };
 
+// Per-column maximum width (px). Columns auto-size to content but are capped
+// so one huge cell cannot stretch a column across the screen.
+// Long-text columns use longWidth instead of a cap.
+var INCIDENT_WIDTH_CAPS = [
+  180, // A  ID
+  215, // B  วันที่บันทึก (ISO string)
+  125, // C  วันที่เกิดเหตุ
+  85,  // D  กะ
+  125, // E  รหัสพนักงาน
+  235, // F  ชื่อพนักงาน
+  245, // G  เครื่องจักร
+  150, // H  Part No.
+  260, // I  ประเภทความผิดพลาด
+  130, // J  ระดับความรุนแรง
+  320, // K  รายละเอียด   -> longWidth
+  220, // L  ผลกระทบ/ของเสีย -> longWidth
+  170, // M  ผู้บันทึก
+  320, // N  สาเหตุเบื้องต้น -> longWidth
+  320, // O  แนวทางแก้ไข   -> longWidth
+  125, // P  สถานะ
+  220, // Q  หมายเหตุ     -> longWidth
+  215, // R  อัปเดตล่าสุด
+  160, // S  ผู้แก้ไขล่าสุด
+  120, // T  Model
+  110, // U  Lot
+  145, // V  จำนวน Sheet ทั้งหมด
+  115, // W  NG Sheet
+  90   // X  % NG
+];
+
+var EMPLOYEE_WIDTH_CAPS = [
+  150, // A  รหัสพนักงาน
+  280, // B  ชื่อ-นามสกุล
+  120, // C  แผนก
+  115, // D  กะประจำ
+  200, // E  ตำแหน่ง
+  165, // F  เบอร์โทร
+  125, // G  สถานะ
+  90   // H  เพศ
+];
+
+var INCIDENT_FIT_OPTIONS = {
+  cap: 260,
+  minWidth: 80,
+  longWidth: 320,
+  headerHeight: 42,
+  caps: INCIDENT_WIDTH_CAPS
+};
+
+var EMPLOYEE_FIT_OPTIONS = {
+  cap: 280,
+  minWidth: 70,
+  headerHeight: 36,
+  caps: EMPLOYEE_WIDTH_CAPS
+};
+
 var EMPLOYEE_SEED = [
   ['RT001', 'สมชาย ใจดี', 'ROUTER', 'กะเช้า', 'หัวหน้ากะ', '081-234-5678', 'ใช้งาน', 'ชาย'],
   ['RT002', 'สมหญิง รักงาน', 'ROUTER', 'กะเช้า', 'ช่างปฏิบัติการ', '082-345-6789', 'ใช้งาน', 'หญิง'],
@@ -86,6 +142,7 @@ function onOpen() {
     SpreadsheetApp.getUi()
       .createMenu('⚙️ ROUTER System')
       .addItem('ติดตั้ง / เตรียมแผ่นงาน', 'setupSystem')
+      .addItem('ปรับขนาดช่องให้พอดีกับข้อมูล', 'fitSheetsToContent')
       .addItem('ตรวจสอบจำนวนข้อมูล', 'checkSystem')
       .addToUi();
   } catch (error) {
@@ -213,16 +270,14 @@ function formatEmployeeSheet_(sheet) {
     .setVerticalAlignment('middle');
   sheet.setRowHeight(1, 36);
 
-  var widths = [110, 210, 100, 110, 150, 140, 100, 90];
-  widths.forEach(function (width, index) {
-    sheet.setColumnWidth(index + 1, width);
-  });
-
   if (sheet.getLastRow() > 1) {
     sheet.getRange(2, 1, sheet.getLastRow() - 1, CONFIG.EMPLOYEE_HEADERS.length)
       .setVerticalAlignment('middle')
       .setBorder(true, true, true, true, true, true, '#e2e8f0', SpreadsheetApp.BorderStyle.SOLID);
   }
+
+  // Fit columns/rows to content (no fixed widths)
+  fitSheetToContent_(sheet, CONFIG.EMPLOYEE_HEADERS.length, [], EMPLOYEE_FIT_OPTIONS);
 
   var statusValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['ใช้งาน', 'ไม่ใช้งาน'], true)
@@ -248,11 +303,6 @@ function formatIncidentSheet_(sheet) {
     .setVerticalAlignment('middle')
     .setWrap(true);
   sheet.setRowHeight(1, 42);
-
-  var widths = [155, 155, 120, 100, 115, 175, 190, 145, 230, 125, 300, 190, 145, 220, 240, 130, 180, 155, 145];
-  widths.forEach(function (width, index) {
-    sheet.setColumnWidth(index + 1, width);
-  });
 
   if (sheet.getLastRow() > 1) {
     sheet.getRange(2, 1, sheet.getLastRow() - 1, columnCount)
@@ -290,6 +340,163 @@ function formatIncidentSheet_(sheet) {
     .build();
   sheet.getRange(2, INCIDENT_COLUMN.status, Math.max(1, sheet.getMaxRows() - 1), 1)
     .setDataValidation(statusValidation);
+
+  // Fit columns/rows to content (long-text columns keep a readable width)
+  fitSheetToContent_(sheet, columnCount, [
+    INCIDENT_COLUMN.description,
+    INCIDENT_COLUMN.impact,
+    INCIDENT_COLUMN.rootCause,
+    INCIDENT_COLUMN.corrective,
+    INCIDENT_COLUMN.notes
+  ], INCIDENT_FIT_OPTIONS);
+}
+
+/**
+ * Fit a sheet's columns and row heights to its content.
+ * Long-text columns get a fixed readable width (with wrapped text); every
+ * other column is auto-sized to its widest cell and capped so one huge cell
+ * cannot stretch a column across the screen.
+ * Row heights are fit with the sheet's native autoResizeRows (or an
+ * over-estimating fallback) so wrapped text is never clipped.
+ */
+function fitSheetToContent_(sheet, columnCount, longTextColumns, options) {
+  var opts = options || {};
+  var minWidth = opts.minWidth || 70;
+  var cap = opts.cap || 260;
+  var caps = opts.caps || null;
+  var longWidth = opts.longWidth || 300;
+  var headerHeight = opts.headerHeight || 36;
+  var rowPad = opts.rowPad || 4;
+
+  if (!sheet) return;
+
+  var lastRow = Math.max(sheet.getLastRow(), 1);
+
+  // Wrap everything so no text is ever hidden horizontally
+  if (lastRow > 1) {
+    sheet.getRange(2, 1, lastRow - 1, columnCount).setWrap(true);
+  }
+
+  // 1) Column widths: fit content, capped; long-text columns get fixed width
+  var columnWidths = [];
+  for (var col = 1; col <= columnCount; col += 1) {
+    var colCap = (caps && caps[col - 1]) ? caps[col - 1] : cap;
+    if (longTextColumns && longTextColumns.indexOf(col) !== -1) {
+      sheet.setColumnWidth(col, longWidth);
+      columnWidths.push(longWidth);
+      continue;
+    }
+    sheet.autoResizeColumn(col);
+    var width = sheet.getColumnWidth(col);
+    var finalWidth;
+    if (width > colCap) {
+      finalWidth = colCap;
+    } else if (width < minWidth) {
+      finalWidth = minWidth;
+    } else {
+      finalWidth = width;
+    }
+    sheet.setColumnWidth(col, finalWidth);
+    columnWidths.push(finalWidth);
+  }
+
+  // 2) Row heights: fit wrapped content so nothing is clipped.
+  //    First try the sheet's native auto-resize (matches Google's own font
+  //    metrics), then bump any row that still comes out shorter than our
+  //    over-estimating calculation - so Thai wrapped text is never clipped.
+  if (lastRow > 1) {
+    var values = sheet.getRange(2, 1, lastRow - 1, columnCount).getValues();
+    var estPxPerChar = 9;   // small enough to over-estimate lines (safe)
+    var estLineHeight = 24; // px per line incl. padding
+    var estMin = 24;
+    var estMax = 409;       // Google Sheets maximum row height
+    var estimates = [];
+    for (var r = 0; r < values.length; r += 1) {
+      var row = values[r];
+      var maxLines = 1;
+      for (var c = 0; c < columnCount; c += 1) {
+        var text = row[c];
+        if (text === null || text === undefined) continue;
+        text = String(text);
+        if (text.trim() === '') continue;
+        var contentWidth = Math.max(30, (columnWidths[c] || 100) - 14);
+        var charsPerLine = Math.max(1, Math.floor(contentWidth / estPxPerChar));
+        var segments = text.split(/\r?\n/);
+        var lines = 0;
+        for (var s = 0; s < segments.length; s += 1) {
+          lines += Math.max(1, Math.ceil(segments[s].length / charsPerLine));
+        }
+        if (lines > maxLines) maxLines = lines;
+      }
+      estimates.push(Math.min(estMax, Math.max(estMin, maxLines * estLineHeight + rowPad)));
+    }
+
+    var usedNativeResize = false;
+    try {
+      SpreadsheetApp.flush(); // apply column widths before measuring rows
+      sheet.autoResizeRows(2, lastRow - 1);
+      usedNativeResize = true;
+    } catch (error) {
+      usedNativeResize = false;
+    }
+
+    if (usedNativeResize) {
+      for (var i = 0; i < estimates.length; i += 1) {
+        var current = 0;
+        try {
+          current = sheet.getRowHeight(i + 2);
+        } catch (error) {
+          current = 0;
+        }
+        if (current < estimates[i]) {
+          sheet.setRowHeight(i + 2, estimates[i]);
+        }
+      }
+    } else {
+      for (var j = 0; j < estimates.length; j += 1) {
+        sheet.setRowHeight(j + 2, estimates[j]);
+      }
+    }
+  }
+  sheet.setRowHeight(1, headerHeight);
+}
+
+/**
+ * Menu action: refit both sheets to their current data. Run this any time
+ * after bulk-editing rows to bring the layout back in line with the content.
+ */
+function fitSheetsToContent() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (!spreadsheet) throw new Error('ไม่พบไฟล์ Google Sheets ที่ผูกกับสคริปต์');
+
+  var fitted = [];
+  var employeeSheet = spreadsheet.getSheetByName(CONFIG.EMPLOYEE_SHEET);
+  var incidentSheet = spreadsheet.getSheetByName(CONFIG.INCIDENT_SHEET);
+
+  if (employeeSheet) {
+    fitSheetToContent_(employeeSheet, CONFIG.EMPLOYEE_HEADERS.length, [], EMPLOYEE_FIT_OPTIONS);
+    fitted.push(CONFIG.EMPLOYEE_SHEET);
+  }
+
+  if (incidentSheet) {
+    fitSheetToContent_(incidentSheet, CONFIG.INCIDENT_HEADERS.length, [
+      INCIDENT_COLUMN.description,
+      INCIDENT_COLUMN.impact,
+      INCIDENT_COLUMN.rootCause,
+      INCIDENT_COLUMN.corrective,
+      INCIDENT_COLUMN.notes
+    ], INCIDENT_FIT_OPTIONS);
+    fitted.push(CONFIG.INCIDENT_SHEET);
+  }
+
+  try {
+    spreadsheet.toast('ปรับช่องพอดีข้อมูลแล้ว: ' + fitted.join(', '), 'ROUTER System', 5);
+  } catch (error) {
+    // toast is only available in the Sheets UI
+  }
+
+  Logger.log('fitSheetsToContent: ' + JSON.stringify(fitted));
+  return { ok: true, sheets: fitted };
 }
 
 function buildSampleIncidents_() {
