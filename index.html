@@ -2972,16 +2972,10 @@ pre, code { overflow-wrap: anywhere; }
                 <span>หมายเลขเครื่องจักร Router</span>
                 <span class="required-dot">*</span>
               </label>
-              <select id="field-machine" class="form-select no-icon" required>
-                <option value="Router-01 (CNC Precision)">Router-01 (CNC Precision)</option>
-                <option value="Router-02 (CNC Precision)">Router-02 (CNC Precision)</option>
-                <option value="Router-03 (High Speed PCB)">Router-03 (High Speed PCB)</option>
-                <option value="Router-04 (High Speed PCB)">Router-04 (High Speed PCB)</option>
-                <option value="Router-05 (Heavy Duty)">Router-05 (Heavy Duty)</option>
-                <option value="Router-06 (Heavy Duty)">Router-06 (Heavy Duty)</option>
-                <option value="Router-07 (Laser/Hybrid)">Router-07 (Laser/Hybrid)</option>
-                <option value="Router-08 (Prototype)">Router-08 (Prototype)</option>
+              <select id="field-machine" class="form-select no-icon" required aria-describedby="machine-load-hint">
+                <option value="">-- เลือกเครื่องจักร --</option>
               </select>
+              <div id="machine-load-hint" class="field-hint"></div>
             </div>
 
             <!-- 5. ข้อมูล Part / Model / Lot และจำนวนผลิต -->
@@ -3753,9 +3747,46 @@ pre, code { overflow-wrap: anywhere; }
   }
 
   /* ------------------------------------------------------------------------
-     Mock data - used until Google Sheets is connected, and as a safe
-     fallback so the app never opens completely empty.
+     Mock machines - used until Google Sheet 'MC' is connected, and as a safe
+     fallback so the dropdown never renders empty.
      ------------------------------------------------------------------------ */
+  var MOCK_MACHINES = [
+    'Tongtai 10', 'Tongtai 11', 'Tongtai 12', 'Tongtai 13', 'Tongtai 14',
+    'Tongtai 15', 'Tongtai 16', 'Tongtai 17', 'Tongtai 18', 'Tongtai 19',
+    'Tongtai 20', 'Tongtai 21', 'Tongtai 22', 'Tongtai 23', 'Tongtai 24',
+    'Tongtai 25', 'Tongtai 26', 'Tongtai 27',
+    'Tongtai 43', 'Tongtai 44', 'Tongtai 45', 'Tongtai 46', 'Tongtai 47',
+    'Tongtai 48', 'Tongtai 49', 'Tongtai 50', 'Tongtai 51', 'Tongtai 52',
+    'Tongtai 53', 'Tongtai 54',
+    'Router Via 33', 'Router Via 34', 'Router Via 35', 'Router Via 36'
+  ];
+
+  function normalizeMachines(source) {
+    if (!Array.isArray(source)) return [];
+    var seen = {};
+    var result = [];
+    source.forEach(function (item) {
+      var name = '';
+      if (item === null || item === undefined) return;
+      if (typeof item === 'string' || typeof item === 'number') {
+        name = String(item);
+      } else if (typeof item === 'object') {
+        name = String(
+          item.machine !== undefined ? item.machine
+            : (item.name !== undefined ? item.name
+              : (item['เครื่องจักร'] !== undefined ? item['เครื่องจักร'] : ''))
+        );
+      }
+      name = name.trim();
+      // skip the header cell and blanks
+      if (!name || /^machine$/i.test(name) || /^เครื่องจักร$/i.test(name)) return;
+      if (Object.prototype.hasOwnProperty.call(seen, name.toLowerCase())) return;
+      seen[name.toLowerCase()] = true;
+      result.push(name);
+    });
+    return result;
+  }
+
   var MOCK_EMPLOYEES = [
     { id: 'RT001', code: 'RT001', name: 'สมชาย ใจดี', department: 'ROUTER', shift: 'กะเช้า', position: 'หัวหน้ากะ', phone: '081-234-5678', gender: 'ชาย', active: true },
     { id: 'RT002', code: 'RT002', name: 'สมหญิง รักงาน', department: 'ROUTER', shift: 'กะเช้า', position: 'ช่างปฏิบัติการ', phone: '082-345-6789', gender: 'หญิง', active: true },
@@ -3992,9 +4023,11 @@ pre, code { overflow-wrap: anywhere; }
     var data = payload && payload.data ? payload.data : payload;
     var employeesSource = (data && (data.employees || data.employeeList)) || [];
     var incidentsSource = (data && (data.incidents || data.incidentList)) || [];
+    var machinesSource = (data && (data.machines || data.machineList)) || [];
     var employees = Array.isArray(employeesSource) ? employeesSource.map(normalizeEmployee).filter(Boolean) : [];
     var incidents = Array.isArray(incidentsSource) ? incidentsSource.map(normalizeIncident).filter(Boolean) : [];
-    return { employees: employees, incidents: incidents };
+    var machines = normalizeMachines(machinesSource);
+    return { employees: employees, incidents: incidents, machines: machines };
   }
 
   /* ------------------------------------------------------------------------
@@ -4061,6 +4094,7 @@ pre, code { overflow-wrap: anywhere; }
     try {
       storageSet(STORAGE.cache, JSON.stringify({
         employees: data.employees || [],
+        machines: data.machines || [],
         incidents: data.incidents || [],
         savedAt: new Date().toISOString()
       }));
@@ -4170,11 +4204,21 @@ pre, code { overflow-wrap: anywhere; }
         var cached = getCache();
         normalized.employees = cached ? cached.employees : [];
       }
+      // Same fallback chain for the machine list from sheet 'MC'
+      var rawMachines = response && (response.machines ||
+        (response.data && response.data.machines));
+      if (!Array.isArray(rawMachines)) {
+        var cachedMachines = getCache();
+        normalized.machines = cachedMachines && Array.isArray(cachedMachines.machines)
+          ? cachedMachines.machines
+          : MOCK_MACHINES.slice();
+      }
       setCache(normalized);
       return {
         ok: true,
         employees: normalized.employees,
         incidents: normalized.incidents,
+        machines: normalized.machines,
         timestamp: response.timestamp || new Date().toISOString()
       };
     });
@@ -4208,6 +4252,7 @@ pre, code { overflow-wrap: anywhere; }
   global.RouterAPI = {
     STORAGE_KEYS: STORAGE,
     MOCK_EMPLOYEES: MOCK_EMPLOYEES,
+    MOCK_MACHINES: MOCK_MACHINES,
     createMockIncidents: createMockIncidents,
     getGasUrl: getGasUrl,
     setGasUrl: setGasUrl,
@@ -4222,6 +4267,7 @@ pre, code { overflow-wrap: anywhere; }
     clearCache: clearCache,
     normalizeEmployee: normalizeEmployee,
     normalizeIncident: normalizeIncident,
+    normalizeMachines: normalizeMachines,
     normalizePayload: normalizePayload,
     toLocalDateString: toLocalDateString,
     dateWithOffset: dateWithOffset
@@ -4242,6 +4288,7 @@ pre, code { overflow-wrap: anywhere; }
 
   var STORAGE = {
     employees: 'router_employees_v1',
+    machines: 'router_machines_v1',
     incidents: 'router_incidents_v1',
     pending: 'router_pending_ops_v1',
     seeded: 'router_seeded_v1'
@@ -4328,6 +4375,7 @@ pre, code { overflow-wrap: anywhere; }
      ------------------------------------------------------------------------ */
   var state = {
     employees: [],
+    machines: [],
     incidents: [],
     pending: [],
     filters: {
@@ -4351,6 +4399,7 @@ pre, code { overflow-wrap: anywhere; }
      ------------------------------------------------------------------------ */
   function load() {
     var storedEmployees = readJSON(STORAGE.employees, null);
+    var storedMachines = readJSON(STORAGE.machines, null);
     var storedIncidents = readJSON(STORAGE.incidents, null);
     var storedPending = readJSON(STORAGE.pending, null);
     var alreadySeeded = readRaw(STORAGE.seeded) === '1';
@@ -4360,6 +4409,13 @@ pre, code { overflow-wrap: anywhere; }
     } else {
       state.employees = clone(API.MOCK_EMPLOYEES);
       writeJSON(STORAGE.employees, state.employees);
+    }
+
+    if (Array.isArray(storedMachines) && storedMachines.length) {
+      state.machines = storedMachines;
+    } else {
+      state.machines = clone(API.MOCK_MACHINES);
+      writeJSON(STORAGE.machines, state.machines);
     }
 
     if (Array.isArray(storedIncidents)) {
@@ -4380,6 +4436,10 @@ pre, code { overflow-wrap: anywhere; }
     writeJSON(STORAGE.employees, state.employees);
   }
 
+  function persistMachines() {
+    writeJSON(STORAGE.machines, state.machines);
+  }
+
   function persistIncidents() {
     writeJSON(STORAGE.incidents, state.incidents);
   }
@@ -4390,6 +4450,7 @@ pre, code { overflow-wrap: anywhere; }
 
   function persistAll() {
     persistEmployees();
+    persistMachines();
     persistIncidents();
     persistPending();
   }
@@ -4599,6 +4660,9 @@ pre, code { overflow-wrap: anywhere; }
 
           if (Array.isArray(result.employees)) {
             state.employees = result.employees;
+          }
+          if (Array.isArray(result.machines)) {
+            state.machines = result.machines;
           }
           state.incidents = applyPendingOpsToIncidents(result.incidents);
           state.page = 1;
@@ -5002,8 +5066,14 @@ pre, code { overflow-wrap: anywhere; }
     return true;
   }
 
+  function getMachines() {
+    var list = Array.isArray(state.machines) ? state.machines : [];
+    return list.slice();
+  }
+
   function reloadMockData() {
     state.employees = clone(API.MOCK_EMPLOYEES);
+    state.machines = clone(API.MOCK_MACHINES);
     state.incidents = sortIncidents(API.createMockIncidents());
     state.pending = [];
     state.page = 1;
@@ -5046,6 +5116,7 @@ pre, code { overflow-wrap: anywhere; }
     getShiftCounts: getShiftCounts,
     getTimeline: getTimeline,
     getEmployeeStats: getEmployeeStats,
+    getMachines: getMachines,
     clearIncidents: clearIncidents,
     reloadMockData: reloadMockData,
     updateEmployeeList: updateEmployeeList,
@@ -6311,6 +6382,42 @@ pre, code { overflow-wrap: anywhere; }
     updateEmployeePreview();
   }
 
+  function populateMachineSelect() {
+    if (!dom.fieldMachine) return;
+    var machines = Store.getMachines();
+    var previous = dom.fieldMachine.value;
+
+    dom.fieldMachine.innerHTML = '';
+
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = machines.length
+      ? '-- เลือกเครื่องจักร --'
+      : 'ไม่พบรายชื่อเครื่องจักร (กรุณาตรวจสอบชีต "MC")';
+    dom.fieldMachine.appendChild(placeholder);
+
+    machines.forEach(function (machine) {
+      var option = document.createElement('option');
+      option.value = machine;
+      option.textContent = machine;
+      dom.fieldMachine.appendChild(option);
+    });
+
+    var stillExists = machines.indexOf(previous) !== -1;
+    dom.fieldMachine.value = stillExists ? previous : '';
+    dom.fieldMachine.disabled = machines.length === 0;
+
+    if (dom.machineLoadHint) {
+      if (!machines.length) {
+        dom.machineLoadHint.textContent = 'ยังไม่มีข้อมูลเครื่องจักรในระบบ กรุณาเพิ่มในชีต "MC" (คอลัมน์ A ชื่อ Machine)';
+      } else if (API.isConfigured()) {
+        dom.machineLoadHint.textContent = 'พบเครื่องจักร ' + machines.length + ' เครื่อง (ดึงจากชีต "MC")';
+      } else {
+        dom.machineLoadHint.textContent = 'พบเครื่องจักร ' + machines.length + ' เครื่อง (ข้อมูลตัวอย่างในเครื่อง)';
+      }
+    }
+  }
+
   function updateEmployeePreview() {
     if (!dom.fieldEmployee || !dom.employeePreviewCard) return;
     var id = dom.fieldEmployee.value;
@@ -6512,6 +6619,10 @@ pre, code { overflow-wrap: anywhere; }
       shift: dom.fieldShift.value,
       machine: dom.fieldMachine.value,
       partNo: dom.fieldPartNo.value.trim(),
+      model: (byId('field-model') ? byId('field-model').value.trim() : ''),
+      lot: (byId('field-lot') ? byId('field-lot').value.trim() : ''),
+      totalSheets: (byId('field-total-sheets') ? Math.max(0, Math.floor(Number(byId('field-total-sheets').value) || 0)) : 0),
+      ngSheets: (byId('field-ng-sheets') ? Math.max(0, Math.floor(Number(byId('field-ng-sheets').value) || 0)) : 0),
       category: dom.fieldCategory.value.trim(),
       severity: severityInput ? severityInput.value : 'ปานกลาง',
       description: (function () {
@@ -6563,6 +6674,7 @@ pre, code { overflow-wrap: anywhere; }
     dom.fieldReporter.value = safeGet(KEYS.lastReporter) || '';
 
     populateEmployeeSelect();
+    populateMachineSelect();
     updateCategoryChips();
     updateSeverityCards();
 
@@ -6896,9 +7008,10 @@ pre, code { overflow-wrap: anywhere; }
 
     var headers = [
       'ID', 'วันที่เกิดเหตุ', 'วันที่บันทึก', 'กะ', 'รหัสพนักงาน', 'ชื่อพนักงาน',
-      'เครื่องจักร', 'Part No.', 'ประเภทความผิดพลาด', 'ระดับความรุนแรง',
+      'เครื่องจักร', 'Part No.', 'Model', 'Lot', 'จำนวน Sheet ทั้งหมด', 'NG Sheet', '% NG',
+      'ประเภทความผิดพลาด', 'ระดับความรุนแรง',
       'รายละเอียด', 'ผลกระทบ/ของเสีย', 'ผู้บันทึก', 'สาเหตุเบื้องต้น',
-      'แนวทางแก้ไข', 'สถานะ', 'หมายเหตุ', 'อัปเดตล่าสุด'
+      'แนวทางแก้ไข', 'สถานะ', 'หมายเหตุ', 'อัปเดตล่าสุด', 'ผู้แก้ไขล่าสุด'
     ];
 
     var rows = incidents.map(function (incident) {
@@ -6911,6 +7024,11 @@ pre, code { overflow-wrap: anywhere; }
         incident.employeeName,
         incident.machine,
         incident.partNo,
+        incident.model || '',
+        incident.lot || '',
+        incident.totalSheets || 0,
+        incident.ngSheets || 0,
+        incident.ngPercent || '0.00%',
         incident.category,
         incident.severity,
         incident.description,
@@ -6920,7 +7038,8 @@ pre, code { overflow-wrap: anywhere; }
         incident.corrective,
         incident.status,
         incident.notes,
-        incident.updatedAt
+        incident.updatedAt,
+        incident.updatedBy || ''
       ].map(csvCell).join(',');
     });
 
@@ -7536,6 +7655,7 @@ pre, code { overflow-wrap: anywhere; }
 
     if (event.type === 'sync:success') {
       populateEmployeeSelect();
+      populateMachineSelect();
       if (!event.silent) {
         showToast('ซิงค์ข้อมูลสำเร็จ: ' + event.incidents + ' รายการ', 'success');
       }
@@ -7555,6 +7675,7 @@ pre, code { overflow-wrap: anywhere; }
 
     if (event.type === 'employees:update') {
       populateEmployeeSelect();
+      populateMachineSelect();
       renderEmployees();
       return;
     }
@@ -7609,6 +7730,7 @@ pre, code { overflow-wrap: anywhere; }
     dom.fieldCorrective = byId('field-corrective');
     dom.fieldEmployeeHint = byId('employee-load-hint');
     dom.employeeLoadHint = byId('employee-load-hint');
+    dom.machineLoadHint = byId('machine-load-hint');
     dom.employeePreviewCard = byId('employee-preview-card');
     dom.previewEmpAvatar = byId('employee-preview-avatar');
     dom.previewEmpName = byId('preview-emp-name');
@@ -7715,6 +7837,7 @@ pre, code { overflow-wrap: anywhere; }
     Charts.init(resolvedTheme);
     updateSyncUI();
     populateEmployeeSelect();
+    populateMachineSelect();
     renderMetrics();
     renderTable();
     renderEmployees();

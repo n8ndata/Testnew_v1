@@ -17,6 +17,7 @@
 var CONFIG = {
   EMPLOYEE_SHEET: 'รายชื่อพนักงาน',
   INCIDENT_SHEET: 'บันทึกความผิดพลาด',
+  MACHINE_SHEET: 'MC',
   TIMEZONE: Session.getScriptTimeZone() || 'Asia/Bangkok',
   EMPLOYEE_HEADERS: [
     'รหัสพนักงาน', 'ชื่อ-นามสกุล', 'แผนก', 'กะประจำ', 'ตำแหน่ง', 'เบอร์โทร', 'สถานะ', 'เพศ'
@@ -229,8 +230,10 @@ function checkSystem() {
   if (!spreadsheet) throw new Error('ไม่พบไฟล์ Google Sheets ที่ผูกกับสคริปต์');
   var employeeSheet = spreadsheet.getSheetByName(CONFIG.EMPLOYEE_SHEET);
   var incidentSheet = spreadsheet.getSheetByName(CONFIG.INCIDENT_SHEET);
+  var machineSheet = spreadsheet.getSheetByName(CONFIG.MACHINE_SHEET);
   var message = 'พนักงาน: ' + (employeeSheet ? Math.max(0, employeeSheet.getLastRow() - 1) : 0) + ' คน\n' +
-    'รายการข้อผิดพลาด: ' + (incidentSheet ? Math.max(0, incidentSheet.getLastRow() - 1) : 0) + ' รายการ';
+    'รายการข้อผิดพลาด: ' + (incidentSheet ? Math.max(0, incidentSheet.getLastRow() - 1) : 0) + ' รายการ\n' +
+    'เครื่องจักร (MC): ' + (machineSheet ? readMachines_(machineSheet).length : 0) + ' เครื่อง';
   try {
     SpreadsheetApp.getUi().alert('สถานะระบบ ROUTER', message, SpreadsheetApp.getUi().ButtonSet.OK);
   } catch (error) {
@@ -489,6 +492,17 @@ function fitSheetsToContent() {
     fitted.push(CONFIG.INCIDENT_SHEET);
   }
 
+  var machineSheet = spreadsheet.getSheetByName(CONFIG.MACHINE_SHEET);
+  if (machineSheet) {
+    // Only column A (ชื่อเครื่องจักร) is auto-fitted; other columns stay untouched
+    fitSheetToContent_(machineSheet, 1, [], {
+      cap: 260,
+      minWidth: 90,
+      headerHeight: 30
+    });
+    fitted.push(CONFIG.MACHINE_SHEET);
+  }
+
   try {
     spreadsheet.toast('ปรับช่องพอดีข้อมูลแล้ว: ' + fitted.join(', '), 'ROUTER System', 5);
   } catch (error) {
@@ -593,7 +607,7 @@ function buildSampleIncidents_() {
 
 function incidentRow_(data, now) {
   var timestamp = now.toISOString();
-  return [
+  return assertIncidentRow_([
     data.id || '',
     timestamp,
     data.date || formatDate_(now),
@@ -618,7 +632,18 @@ function incidentRow_(data, now) {
     Math.max(0, Math.floor(Number(data.totalSheets) || 0)),
     Math.max(0, Math.floor(Number(data.ngSheets) || 0)),
     Number(data.totalSheets) > 0 ? ((Number(data.ngSheets) || 0) / Number(data.totalSheets) * 100).toFixed(2) + '%' : '0.00%'
-  ];
+  ]);
+}
+
+/**
+ * Schema guard: rows shorter or longer than the header row would silently
+ * drop or misplace columns - fail loudly instead.
+ */
+function assertIncidentRow_(row) {
+  if (!row || row.length !== CONFIG.INCIDENT_HEADERS.length) {
+    throw new Error('โครงสร้างข้อมูลไม่ตรงกับจำนวนคอลัมน์ในชีต (' + (row ? row.length : 0) + '/' + CONFIG.INCIDENT_HEADERS.length + ')');
+  }
+  return row;
 }
 
 /* ============================================================================
@@ -631,6 +656,8 @@ function doGet(e) {
     var spreadsheet = getSpreadsheet_();
     var employeeSheet = getOrCreateSheet_(spreadsheet, CONFIG.EMPLOYEE_SHEET, CONFIG.EMPLOYEE_HEADERS);
     var incidentSheet = getOrCreateSheet_(spreadsheet, CONFIG.INCIDENT_SHEET, CONFIG.INCIDENT_HEADERS);
+    // Machine list lives in sheet "MC" (owned by the user - never auto-created here)
+    var machineSheet = spreadsheet.getSheetByName(CONFIG.MACHINE_SHEET);
 
     if (action === 'ping') {
       return json_({
@@ -657,11 +684,20 @@ function doGet(e) {
       });
     }
 
+    if (action === 'machines') {
+      return json_({
+        ok: true,
+        machines: readMachines_(machineSheet),
+        timestamp: new Date().toISOString()
+      });
+    }
+
     if (action === 'all' || action === '') {
       return json_({
         ok: true,
         employees: readEmployees_(employeeSheet),
         incidents: readIncidents_(incidentSheet),
+        machines: readMachines_(machineSheet),
         timestamp: new Date().toISOString()
       });
     }
@@ -739,6 +775,13 @@ function createIncident_(sheet, data) {
   var severity = VALID.severities.indexOf(clean_(data.severity)) !== -1 ? clean_(data.severity) : 'ปานกลาง';
   var status = VALID.statuses.indexOf(clean_(data.status)) !== -1 ? clean_(data.status) : 'รอดำเนินการ';
 
+  var totalSheets = Math.max(0, Math.floor(Number(data.totalSheets) || 0));
+  var ngSheets = Math.max(0, Math.floor(Number(data.ngSheets) || 0));
+  var ngPercent = clean_(data.ngPercent);
+  if (!/^-?\d+(\.\d+)?%$/.test(ngPercent)) {
+    ngPercent = totalSheets > 0 ? (ngSheets / totalSheets * 100).toFixed(2) + '%' : '0.00%';
+  }
+
   var row = [
     id,
     now.toISOString(),
@@ -758,9 +801,15 @@ function createIncident_(sheet, data) {
     status,
     clean_(data.notes),
     now.toISOString(),
-    clean_(data.updatedBy) || 'web-app'
+    clean_(data.updatedBy) || 'web-app',
+    clean_(data.model),
+    clean_(data.lot),
+    totalSheets,
+    ngSheets,
+    ngPercent
   ];
 
+  assertIncidentRow_(row);
   sheet.appendRow(row);
   var rowNumber = sheet.getLastRow();
   sheet.getRange(rowNumber, INCIDENT_COLUMN.timestamp, 1, 2).setNumberFormat('@');
@@ -784,19 +833,36 @@ function updateIncident_(sheet, id, patch) {
     return { ok: true, missing: true, id: incidentId };
   }
 
-  var allowed = ['status', 'description', 'rootCause', 'corrective', 'notes', 'severity', 'shift', 'category', 'impact', 'partNo', 'machine'];
+  var allowed = ['status', 'description', 'rootCause', 'corrective', 'notes', 'severity', 'shift', 'category', 'impact', 'partNo', 'machine', 'model', 'lot', 'totalSheets', 'ngSheets'];
   var updated = false;
 
   allowed.forEach(function (field) {
     if (!Object.prototype.hasOwnProperty.call(patch, field)) return;
+    if (field === 'totalSheets' || field === 'ngSheets') {
+      var numberValue = Math.max(0, Math.floor(Number(patch[field]) || 0));
+      sheet.getRange(rowNumber, INCIDENT_COLUMN[field]).setValue(numberValue);
+      updated = true;
+      return;
+    }
     var value = clean_(patch[field]);
-    if (['description', 'rootCause', 'corrective', 'notes', 'category', 'impact', 'partNo', 'machine'].indexOf(field) !== -1) value = sheetSafeText_(value);
+    if (['description', 'rootCause', 'corrective', 'notes', 'category', 'impact', 'partNo', 'machine', 'model', 'lot'].indexOf(field) !== -1) value = sheetSafeText_(value);
     if (field === 'status' && VALID.statuses.indexOf(value) === -1) value = 'รอดำเนินการ';
     if (field === 'severity' && VALID.severities.indexOf(value) === -1) value = 'ปานกลาง';
     if (field === 'shift' && VALID.shifts.indexOf(value) === -1) value = 'กะเช้า';
     sheet.getRange(rowNumber, INCIDENT_COLUMN[field]).setValue(value);
     updated = true;
   });
+
+  // Keep % NG in sync when the sheet/NG counts are patched
+  if (Object.prototype.hasOwnProperty.call(patch, 'totalSheets') ||
+      Object.prototype.hasOwnProperty.call(patch, 'ngSheets') ||
+      Object.prototype.hasOwnProperty.call(patch, 'ngPercent')) {
+    var totalValue = Math.max(0, Math.floor(Number(sheet.getRange(rowNumber, INCIDENT_COLUMN.totalSheets).getValue()) || 0));
+    var ngValue = Math.max(0, Math.floor(Number(sheet.getRange(rowNumber, INCIDENT_COLUMN.ngSheets).getValue()) || 0));
+    sheet.getRange(rowNumber, INCIDENT_COLUMN.ngPercent)
+      .setValue(totalValue > 0 ? (ngValue / totalValue * 100).toFixed(2) + '%' : '0.00%');
+    updated = true;
+  }
 
   if (!updated) {
     return { ok: true, incident: readIncidentByRow_(sheet, rowNumber), unchanged: true };
@@ -845,6 +911,30 @@ function readEmployees_(sheet) {
   }).sort(function (a, b) {
     // แสดงลำดับตามรหัสพนักงาน (คอลัมน์ A) แบบ sort เลขให้เป็นธรรมชาติ เช่น RT2 < RT10
     return a.code.localeCompare(b.code, 'th', { numeric: true, sensitivity: 'base' });
+  });
+}
+
+/**
+ * Read the machine list from sheet "MC".
+ * Expected layout: row 1 = header ("Machine"), rows 2+ = one machine per row
+ * in column A (other columns are ignored). Returns [] when the sheet is
+ * missing or empty so the client can fall back to its built-in list.
+ */
+function readMachines_(sheet) {
+  if (!sheet) return [];
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return [];
+
+  var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  var seen = {};
+  return values.map(function (row) {
+    return clean_(row[0]);
+  }).filter(function (name) {
+    if (!name) return false;
+    var key = name.toLowerCase();
+    if (Object.prototype.hasOwnProperty.call(seen, key)) return false;
+    seen[key] = true;
+    return true;
   });
 }
 
