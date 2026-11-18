@@ -3444,33 +3444,91 @@ pre, code { overflow-wrap: anywhere; }
 
       <form id="form-edit-incident" novalidate>
         <div class="modal-body">
-          <div class="edit-summary">
+          <div class="edit-summary edit-summary-compact">
             <div class="edit-summary-top">
               <span>รหัส: <span id="edit-modal-id">-</span></span>
-              <span class="edit-summary-person">
-                <span id="edit-modal-avatar" class="edit-summary-avatar" aria-hidden="true"></span>
-                <span id="edit-modal-emp">-</span>
-              </span>
-            </div>
-            <div id="edit-modal-machine" class="edit-summary-machine">-</div>
-            <div class="edit-summary-meta">
-              <span id="edit-modal-category">-</span>
-              <span id="edit-modal-severity">-</span>
-              <span id="edit-modal-date">-</span>
+              <span id="edit-modal-created" class="edit-summary-person"></span>
             </div>
           </div>
 
           <div class="form-grid-layout" style="gap: 1rem;">
+            <!-- พนักงาน -->
             <div class="form-field-group col-span-full">
-              <label class="form-label" for="edit-field-status">
-                <span>สถานะการดำเนินงาน</span>
+              <label class="form-label" for="edit-field-employee">
+                <span>พนักงานที่ทำความผิดพลาด</span>
+                <span class="required-dot">*</span>
               </label>
-              <select id="edit-field-status" class="form-select no-icon">
-                <option value="รอดำเนินการ">🟡 รอดำเนินการ</option>
-                <option value="กำลังตรวจสอบ">🔵 กำลังตรวจสอบ</option>
-                <option value="อบรมซ้ำแล้ว">🟣 อบรมซ้ำแล้ว</option>
-                <option value="ปิดงาน">🟢 ปิดงาน (Resolved)</option>
+              <div class="input-container">
+                <select id="edit-field-employee" class="form-select no-icon" required>
+                  <option value="">-- เลือกพนักงาน --</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-label" for="edit-field-date"><span>วันที่เกิดเหตุ</span><span class="required-dot">*</span></label>
+              <input type="date" id="edit-field-date" class="form-input no-icon" required>
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-label" for="edit-field-shift"><span>กะการทำงาน (Shift)</span><span class="required-dot">*</span></label>
+              <select id="edit-field-shift" class="form-select no-icon">
+                <option value="กะเช้า">🌅 กะเช้า (08:00 - 20:00)</option>
+                <option value="กะดึก">🌙 กะดึก (20:00 - 08:00)</option>
               </select>
+            </div>
+
+            <div class="form-field-group col-span-full">
+              <label class="form-label" for="edit-field-machine"><span>หมายเลขเครื่องจักร Router</span></label>
+              <select id="edit-field-machine" class="form-select no-icon">
+                <option value="">-- เลือกเครื่องจักร --</option>
+              </select>
+            </div>
+
+            <div class="form-field-group"><label class="form-label" for="edit-field-part-no">Part / ของงาน</label><input type="text" id="edit-field-part-no" class="form-input no-icon" placeholder="ระบุ Part No. / รหัสชิ้นงาน" maxlength="120"></div>
+            <div class="form-field-group"><label class="form-label" for="edit-field-model">Model / โมเดล</label><input type="text" id="edit-field-model" class="form-input no-icon" placeholder="ระบุโมเดล" maxlength="120"></div>
+            <div class="form-field-group"><label class="form-label" for="edit-field-lot">Lot / งาน</label><input type="text" id="edit-field-lot" class="form-input no-icon" placeholder="ระบุ Lot / เลขงาน" maxlength="120"></div>
+            <div class="form-field-group"><label class="form-label" for="edit-field-total-sheets">จำนวนเต็มงาน / Sheet</label><input type="number" id="edit-field-total-sheets" class="form-input no-icon" min="0" step="1" inputmode="numeric" placeholder="จำนวน Sheet ทั้งหมด"></div>
+            <div class="form-field-group"><label class="form-label" for="edit-field-ng-sheets">NG / งานเสีย (Sheet)</label><input type="number" id="edit-field-ng-sheets" class="form-input no-icon" min="0" step="1" inputmode="numeric" placeholder="จำนวน Sheet เสีย"></div>
+            <div class="form-field-group"><label class="form-label" for="edit-field-ng-percent">% NG / เปอร์เซ็นต์งานเสีย</label><input type="text" id="edit-field-ng-percent" class="form-input no-icon" value="0.00%" readonly aria-live="polite"></div>
+
+            <div class="form-field-group col-span-full">
+              <label class="form-label" for="edit-field-category"><span>ประเภทความผิดพลาด</span></label>
+              <select id="edit-field-category" class="form-select no-icon">
+                <option value="">— เลือกประเภทความผิดพลาด —</option>
+                <option value="ตั้งค่าโปรแกรม / G-Code ผิดพลาด">⚙️ โปรแกรมผิด</option>
+                <option value="ติดตั้งดอกเราเตอร์ผิดเบอร์ / สึกหรอ">🔪 ดอกเราเตอร์ผิด/หัก</option>
+                <option value="วางชิ้นงาน / จิ๊กไม่แน่น">🗜️ จิ๊กหลวม/ชิ้นงานเอียง</option>
+                <option value="ตัดกินชิ้นงานเกินพิกัด">📏 ตัดกินเนื้อเกินพิกัด</option>
+                <option value="ลืมตรวจสอบ First Piece">🔍 ไม่ตรวจ First Piece</option>
+                <option value="ป้อนรหัส Part Number ผิด">🏷️ ป้อน Part ผิด</option>
+                <option value="ระบบดูดฝุ่นอุดตัน / รอยขีดข่วน">💨 ดูดฝุ่นตัน/เป็นรอย</option>
+                <option value="การละเลยความปลอดภัย / PPE">⚠️ ละเลย PPE/เซฟตี้</option>
+              </select>
+            </div>
+
+            <div class="form-field-group col-span-full">
+              <label class="form-label">
+                <span>ระดับความรุนแรง (Severity Level)</span>
+              </label>
+              <div class="severity-pill-grid" role="radiogroup" aria-label="ระดับความรุนแรง">
+                <label class="severity-pill-card sev-low">
+                  <input type="radio" name="edit-severity" value="เล็กน้อย">
+                  <span>🟢 เล็กน้อย (เตือน)</span>
+                </label>
+                <label class="severity-pill-card sev-med">
+                  <input type="radio" name="edit-severity" value="ปานกลาง">
+                  <span>🟡 ปานกลาง (Rework)</span>
+                </label>
+                <label class="severity-pill-card sev-high">
+                  <input type="radio" name="edit-severity" value="สูง">
+                  <span>🟠 สูง (Scrap เสียหาย)</span>
+                </label>
+                <label class="severity-pill-card sev-crit">
+                  <input type="radio" name="edit-severity" value="วิกฤต">
+                  <span>🔴 วิกฤต (เครื่องพัง/หยุดไลน์)</span>
+                </label>
+              </div>
             </div>
 
             <div class="form-field-group col-span-full">
@@ -3478,6 +3536,16 @@ pre, code { overflow-wrap: anywhere; }
                 <span>รายละเอียดเหตุการณ์</span>
               </label>
               <textarea id="edit-field-description" class="form-textarea" maxlength="1500"></textarea>
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-label" for="edit-field-impact"><span>ผลกระทบ / ของเสีย (ชิ้น/บาท)</span></label>
+              <input type="text" id="edit-field-impact" class="form-input no-icon" placeholder="เช่น เสียหาย 10 ชิ้น, เครื่องหยุด 30 นาที" maxlength="250">
+            </div>
+
+            <div class="form-field-group">
+              <label class="form-label" for="edit-field-reporter"><span>ผู้บันทึกข้อมูล (หัวหน้ากะ)</span></label>
+              <input type="text" id="edit-field-reporter" class="form-input no-icon" placeholder="ระบุชื่อผู้ตรวจพบหรือผู้บันทึก" maxlength="120">
             </div>
 
             <div class="form-field-group col-span-full">
@@ -3494,7 +3562,19 @@ pre, code { overflow-wrap: anywhere; }
               <textarea id="edit-field-corrective" class="form-textarea" style="min-height: 70px;" maxlength="1000"></textarea>
             </div>
 
-            <div class="form-field-group col-span-full">
+            <div class="form-field-group">
+              <label class="form-label" for="edit-field-status">
+                <span>สถานะการดำเนินงาน</span>
+              </label>
+              <select id="edit-field-status" class="form-select no-icon">
+                <option value="รอดำเนินการ">🟡 รอดำเนินการ</option>
+                <option value="กำลังตรวจสอบ">🔵 กำลังตรวจสอบ</option>
+                <option value="อบรมซ้ำแล้ว">🟣 อบรมซ้ำแล้ว</option>
+                <option value="ปิดงาน">🟢 ปิดงาน (Resolved)</option>
+              </select>
+            </div>
+
+            <div class="form-field-group">
               <label class="form-label" for="edit-field-notes">
                 <span>หมายเหตุเพิ่มเติม</span>
               </label>
@@ -4812,19 +4892,42 @@ pre, code { overflow-wrap: anywhere; }
     });
     if (index === -1) return null;
 
-    var allowed = ['status', 'description', 'rootCause', 'corrective', 'notes'];
+    var allowed = [
+      'status', 'description', 'rootCause', 'corrective', 'notes',
+      'date', 'shift', 'employeeId', 'employeeName', 'machine',
+      'partNo', 'model', 'lot', 'totalSheets', 'ngSheets',
+      'category', 'severity', 'impact', 'reporter'
+    ];
     var changes = {};
     allowed.forEach(function (key) {
       if (Object.prototype.hasOwnProperty.call(patch, key)) {
-        changes[key] = patch[key];
+        if (key === 'totalSheets' || key === 'ngSheets') {
+          changes[key] = Math.max(0, Math.floor(Number(patch[key]) || 0));
+        } else {
+          changes[key] = patch[key];
+        }
       }
     });
-    changes.updatedAt = nowIso();
 
-    var updated = Object.assign({}, state.incidents[index], changes);
-    state.incidents[index] = updated;
+    var merged = Object.assign({}, state.incidents[index], changes);
+    merged.totalSheets = Math.max(0, Math.floor(Number(merged.totalSheets) || 0));
+    merged.ngSheets = Math.max(0, Math.floor(Number(merged.ngSheets) || 0));
+    if (Object.prototype.hasOwnProperty.call(changes, 'totalSheets') ||
+        Object.prototype.hasOwnProperty.call(changes, 'ngSheets')) {
+      merged.ngPercent = merged.totalSheets > 0
+        ? (merged.ngSheets / merged.totalSheets * 100).toFixed(2) + '%'
+        : '0.00%';
+      changes.totalSheets = merged.totalSheets;
+      changes.ngSheets = merged.ngSheets;
+      changes.ngPercent = merged.ngPercent;
+    }
+
+    changes.updatedAt = nowIso();
+    merged.updatedAt = changes.updatedAt;
+
+    state.incidents[index] = merged;
     state.incidents = sortIncidents(state.incidents);
-    var record = clone(updated);
+    var record = clone(merged);
     persistIncidents();
 
     enqueue({
@@ -6427,6 +6530,89 @@ pre, code { overflow-wrap: anywhere; }
     }
   }
 
+  // Ensure the current (possibly legacy/inactive) value stays selectable in
+  // a select built from a live list - otherwise editing an old record would
+  // silently blank out that field.
+  function ensureSelectOption(select, value, suffix) {
+    if (!select || !value) return;
+    for (var i = 0; i < select.options.length; i += 1) {
+      if (select.options[i].value === value) return;
+    }
+    var option = document.createElement('option');
+    option.value = value;
+    option.textContent = value + (suffix || ' (ข้อมูลเดิม)');
+    select.appendChild(option);
+  }
+
+  function populateEditEmployeeSelect(currentId) {
+    var select = dom.editEmployee;
+    if (!select) return;
+    var previous = currentId !== undefined ? currentId : select.value;
+    var employees = Store.state.employees.slice().sort(function (a, b) {
+      return String(a.code || '').localeCompare(String(b.code || ''), 'th', { numeric: true });
+    });
+    var activeEmployees = employees.filter(function (employee) {
+      return employee.active !== false;
+    });
+
+    select.innerHTML = '';
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '-- เลือกพนักงาน --';
+    select.appendChild(placeholder);
+
+    activeEmployees.forEach(function (employee) {
+      var option = document.createElement('option');
+      option.value = employee.id || employee.code;
+      option.textContent = (employee.code || employee.id) + ' — ' + employee.name +
+        (employee.shift ? ' (' + employee.shift + ')' : '');
+      select.appendChild(option);
+    });
+
+    // Incident may reference an employee who has since been deactivated/removed
+    var inList = activeEmployees.some(function (employee) {
+      return (employee.id || employee.code) === previous;
+    });
+    if (!inList && previous) {
+      var source = employees.find(function (employee) {
+        return (employee.id || employee.code) === previous;
+      });
+      var option = document.createElement('option');
+      option.value = previous;
+      option.textContent = source ? ((source.code || previous) + ' — ' + source.name + ' (ข้อมูลเดิม)') : previous + ' (ข้อมูลเดิม)';
+      select.appendChild(option);
+    }
+    select.value = previous || '';
+  }
+
+  function populateEditMachineSelect(currentMachine) {
+    var select = dom.editMachine;
+    if (!select) return;
+    var machines = Store.getMachines();
+    select.innerHTML = '';
+    var placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = machines.length ? '-- เลือกเครื่องจักร --' : 'ไม่พบรายชื่อเครื่องจักร (โปรดตรวจสอบชีต "MC")';
+    select.appendChild(placeholder);
+    var inList = false;
+    machines.forEach(function (machine) {
+      if (machine === currentMachine) inList = true;
+      var option = document.createElement('option');
+      option.value = machine;
+      option.textContent = machine;
+      select.appendChild(option);
+    });
+    if (!inList && currentMachine) ensureSelectOption(select, currentMachine);
+    select.value = currentMachine || '';
+  }
+
+  function updateEditNgPercent() {
+    if (!dom.editNgPercent) return;
+    var total = dom.editTotalSheets ? Math.max(0, Math.floor(Number(dom.editTotalSheets.value) || 0)) : 0;
+    var ng = dom.editNgSheets ? Math.max(0, Math.floor(Number(dom.editNgSheets.value) || 0)) : 0;
+    dom.editNgPercent.value = total > 0 ? (ng / total * 100).toFixed(2) + '%' : '0.00%';
+  }
+
   function updateEmployeePreview() {
     if (!dom.fieldEmployee || !dom.employeePreviewCard) return;
     var id = dom.fieldEmployee.value;
@@ -6886,28 +7072,46 @@ pre, code { overflow-wrap: anywhere; }
 
     currentEditId = id;
     dom.editModalId.textContent = incident.id;
-    if (dom.editModalAvatar) {
-      var editEmployee = Store.findEmployee(incident.employeeId);
-      dom.editModalAvatar.innerHTML = employeeAvatar({
-        id: incident.employeeId,
-        name: incident.employeeName,
-        position: editEmployee ? editEmployee.position : '',
-        gender: editEmployee ? editEmployee.gender : ''
-      }, 'sm');
+    if (dom.editModalCreated) {
+      dom.editModalCreated.textContent = (incident.timestamp ? formatThaiDate(String(incident.timestamp).slice(0, 10)) : '');
     }
-    dom.editModalEmp.textContent = (incident.employeeName || '-') + (incident.employeeId ? ' (' + incident.employeeId + ')' : '');
-    dom.editModalMachine.textContent = incident.machine || '-';
-    dom.editModalCategory.textContent = incident.category || '-';
-    dom.editModalSeverity.className = 'badge ' + (SEVERITY_CLASS[incident.severity] || 'badge-med');
-    dom.editModalSeverity.textContent = incident.severity || '-';
-    dom.editModalDate.textContent = formatThaiDate(incident.date) + (incident.shift ? ' • ' + incident.shift : '');
 
-    dom.editStatus.value = incident.status || 'รอดำเนินการ';
+    populateEditEmployeeSelect(incident.employeeId);
+    populateEditMachineSelect(incident.machine);
+    ensureSelectOption(dom.editShift, incident.shift, ' (ข้อมูลเดิม)');
+    ensureSelectOption(dom.editCategory, incident.category, ' (ข้อมูลเดิม)');
+
+    dom.editDate.value = incident.date || '';
+    dom.editShift.value = incident.shift || 'กะเช้า';
+    dom.editMachine.value = incident.machine || '';
+    dom.editPartNo.value = incident.partNo || '';
+    dom.editModel.value = incident.model || '';
+    dom.editLot.value = incident.lot || '';
+    dom.editTotalSheets.value = incident.totalSheets !== undefined && incident.totalSheets !== null ? String(incident.totalSheets) : '';
+    dom.editNgSheets.value = incident.ngSheets !== undefined && incident.ngSheets !== null ? String(incident.ngSheets) : '';
+    updateEditNgPercent();
+    dom.editCategory.value = incident.category || '';
+
+    var severityValue = incident.severity || 'ปานกลาง';
+    var severityMatched = false;
+    all('input[name="edit-severity"]').forEach(function (input) {
+      input.checked = input.value === severityValue;
+      if (input.checked) severityMatched = true;
+    });
+    if (!severityMatched) {
+      var fallback = document.querySelector('input[name="edit-severity"][value="ปานกลาง"]');
+      if (fallback) fallback.checked = true;
+    }
+
     dom.editDescription.value = incident.description || '';
+    dom.editImpact.value = incident.impact || '';
+    dom.editReporter.value = incident.reporter || '';
     dom.editRootCause.value = incident.rootCause || '';
     dom.editCorrective.value = incident.corrective || '';
+    dom.editStatus.value = incident.status || 'รอดำเนินการ';
     dom.editNotes.value = incident.notes || '';
 
+    updateSeverityCards();
     openModal('modal-edit-incident');
   }
 
@@ -6956,11 +7160,48 @@ pre, code { overflow-wrap: anywhere; }
       event.preventDefault();
       if (!currentEditId) return;
 
+      var employeeId = dom.editEmployee ? dom.editEmployee.value : '';
+      if (!employeeId) {
+        showToast('กรุณาเลือกพนักงานที่ทำความผิดพลาด', 'error');
+        if (dom.editEmployee) dom.editEmployee.focus();
+        return;
+      }
+      if (dom.editDate && !dom.editDate.value) {
+        showToast('กรุณาระบุวันที่เกิดเหตุ', 'error');
+        dom.editDate.focus();
+        return;
+      }
+      var descriptionValue = dom.editDescription ? dom.editDescription.value.trim() : '';
+      if (descriptionValue.length < 5) {
+        showToast('กรุณาอธิบายรายละเอียดอย่างน้อย 5 ตัวอักษร', 'error');
+        if (dom.editDescription) dom.editDescription.focus();
+        return;
+      }
+
+      var employee = Store.findEmployee(employeeId);
+      var severityInput = document.querySelector('input[name="edit-severity"]:checked');
+      var totalSheets = dom.editTotalSheets ? Math.max(0, Math.floor(Number(dom.editTotalSheets.value) || 0)) : 0;
+      var ngSheets = dom.editNgSheets ? Math.max(0, Math.floor(Number(dom.editNgSheets.value) || 0)) : 0;
+
       var record = Store.updateIncident(currentEditId, {
-        status: dom.editStatus.value,
-        description: dom.editDescription.value.trim(),
+        employeeId: employeeId,
+        employeeName: employee ? employee.name : '',
+        date: dom.editDate.value,
+        shift: dom.editShift.value,
+        machine: dom.editMachine.value,
+        partNo: dom.editPartNo.value.trim(),
+        model: dom.editModel.value.trim(),
+        lot: dom.editLot.value.trim(),
+        totalSheets: totalSheets,
+        ngSheets: ngSheets,
+        category: dom.editCategory.value.trim(),
+        severity: severityInput ? severityInput.value : 'ปานกลาง',
+        description: descriptionValue,
+        impact: dom.editImpact.value.trim(),
+        reporter: dom.editReporter.value.trim(),
         rootCause: dom.editRootCause.value.trim(),
         corrective: dom.editCorrective.value.trim(),
+        status: dom.editStatus.value,
         notes: dom.editNotes.value.trim()
       });
 
@@ -6970,6 +7211,16 @@ pre, code { overflow-wrap: anywhere; }
       } else {
         showToast('ไม่พบรายการที่ต้องการแก้ไข', 'error');
       }
+    });
+
+    if (dom.editTotalSheets) {
+      dom.editTotalSheets.addEventListener('input', updateEditNgPercent);
+    }
+    if (dom.editNgSheets) {
+      dom.editNgSheets.addEventListener('input', updateEditNgPercent);
+    }
+    all('input[name="edit-severity"]').forEach(function (input) {
+      input.addEventListener('change', updateSeverityCards);
     });
 
     dom.btnDeleteIncident.addEventListener('click', function () {
@@ -7787,16 +8038,24 @@ pre, code { overflow-wrap: anywhere; }
 
     dom.formEditIncident = byId('form-edit-incident');
     dom.editModalId = byId('edit-modal-id');
-    dom.editModalEmp = byId('edit-modal-emp');
-    dom.editModalAvatar = byId('edit-modal-avatar');
-    dom.editModalMachine = byId('edit-modal-machine');
-    dom.editModalCategory = byId('edit-modal-category');
-    dom.editModalSeverity = byId('edit-modal-severity');
-    dom.editModalDate = byId('edit-modal-date');
-    dom.editStatus = byId('edit-field-status');
+    dom.editModalCreated = byId('edit-modal-created');
+    dom.editEmployee = byId('edit-field-employee');
+    dom.editDate = byId('edit-field-date');
+    dom.editShift = byId('edit-field-shift');
+    dom.editMachine = byId('edit-field-machine');
+    dom.editPartNo = byId('edit-field-part-no');
+    dom.editModel = byId('edit-field-model');
+    dom.editLot = byId('edit-field-lot');
+    dom.editTotalSheets = byId('edit-field-total-sheets');
+    dom.editNgSheets = byId('edit-field-ng-sheets');
+    dom.editNgPercent = byId('edit-field-ng-percent');
+    dom.editCategory = byId('edit-field-category');
     dom.editDescription = byId('edit-field-description');
+    dom.editImpact = byId('edit-field-impact');
+    dom.editReporter = byId('edit-field-reporter');
     dom.editRootCause = byId('edit-field-root-cause');
     dom.editCorrective = byId('edit-field-corrective');
+    dom.editStatus = byId('edit-field-status');
     dom.editNotes = byId('edit-field-notes');
     dom.btnDeleteIncident = byId('btn-delete-incident');
 

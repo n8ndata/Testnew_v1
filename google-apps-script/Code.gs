@@ -833,7 +833,7 @@ function updateIncident_(sheet, id, patch) {
     return { ok: true, missing: true, id: incidentId };
   }
 
-  var allowed = ['status', 'description', 'rootCause', 'corrective', 'notes', 'severity', 'shift', 'category', 'impact', 'partNo', 'machine', 'model', 'lot', 'totalSheets', 'ngSheets'];
+  var allowed = ['status', 'description', 'rootCause', 'corrective', 'notes', 'severity', 'shift', 'category', 'impact', 'partNo', 'machine', 'model', 'lot', 'totalSheets', 'ngSheets', 'date', 'employeeId', 'employeeName', 'reporter'];
   var updated = false;
 
   allowed.forEach(function (field) {
@@ -845,7 +845,10 @@ function updateIncident_(sheet, id, patch) {
       return;
     }
     var value = clean_(patch[field]);
-    if (['description', 'rootCause', 'corrective', 'notes', 'category', 'impact', 'partNo', 'machine', 'model', 'lot'].indexOf(field) !== -1) value = sheetSafeText_(value);
+    if (field === 'date') {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return; // never write an invalid date
+    }
+    if (['description', 'rootCause', 'corrective', 'notes', 'category', 'impact', 'partNo', 'machine', 'model', 'lot', 'employeeName', 'reporter'].indexOf(field) !== -1) value = sheetSafeText_(value);
     if (field === 'status' && VALID.statuses.indexOf(value) === -1) value = 'รอดำเนินการ';
     if (field === 'severity' && VALID.severities.indexOf(value) === -1) value = 'ปานกลาง';
     if (field === 'shift' && VALID.shifts.indexOf(value) === -1) value = 'กะเช้า';
