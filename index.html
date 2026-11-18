@@ -1770,12 +1770,21 @@ button:disabled {
   color: var(--text-main);
 }
 
+.modal-container > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .modal-body {
   padding: 1.5rem;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0; /* required so a flex child can shrink below its content and scroll */
 }
 
 .modal-footer {
