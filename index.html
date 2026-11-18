@@ -2456,9 +2456,18 @@ button:disabled {
   border-color: rgba(255, 255, 255, 0.18);
 }
 
-.emp-avatar-initials {
+.emp-avatar-gender {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(15, 23, 42, 0.35);
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.3));
+}
+
+.emp-avatar-gender svg {
+  display: block;
+  width: 58%;
+  height: 58%;
 }
 
 .emp-avatar-role {
@@ -3254,9 +3263,7 @@ pre, code { overflow-wrap: anywhere; }
             <select id="filter-shift" class="form-select no-icon filter-select" aria-label="กรองตามกะ">
               <option value="all">ทุกกะ</option>
               <option value="กะเช้า">กะเช้า</option>
-              <option value="กะบ่าย">กะบ่าย</option>
               <option value="กะดึก">กะดึก</option>
-              <option value="กะปกติ">กะปกติ</option>
             </select>
 
             <select id="filter-severity" class="form-select no-icon filter-select" aria-label="กรองตามความรุนแรง">
@@ -3750,18 +3757,18 @@ pre, code { overflow-wrap: anywhere; }
      fallback so the app never opens completely empty.
      ------------------------------------------------------------------------ */
   var MOCK_EMPLOYEES = [
-    { id: 'RT001', code: 'RT001', name: 'สมชาย ใจดี', department: 'ROUTER', shift: 'กะเช้า', position: 'หัวหน้ากะ', phone: '081-234-5678', active: true },
-    { id: 'RT002', code: 'RT002', name: 'สมหญิง รักงาน', department: 'ROUTER', shift: 'กะเช้า', position: 'ช่างปฏิบัติการ', phone: '082-345-6789', active: true },
-    { id: 'RT003', code: 'RT003', name: 'วิชัย ขยันดี', department: 'ROUTER', shift: 'กะบ่าย', position: 'ช่างปฏิบัติการ', phone: '083-456-7890', active: true },
-    { id: 'RT004', code: 'RT004', name: 'นภาพร สว่างใจ', department: 'ROUTER', shift: 'กะบ่าย', position: 'หัวหน้ากะ', phone: '084-567-8901', active: true },
-    { id: 'RT005', code: 'RT005', name: 'อนุชา พากเพียร', department: 'ROUTER', shift: 'กะดึก', position: 'ช่างปฏิบัติการ', phone: '085-678-9012', active: true },
-    { id: 'RT006', code: 'RT006', name: 'ปรีชา มั่นคง', department: 'ROUTER', shift: 'กะดึก', position: 'ช่างซ่อมบำรุง', phone: '086-789-0123', active: true },
-    { id: 'RT007', code: 'RT007', name: 'กมลชนก แสงทอง', department: 'ROUTER', shift: 'กะเช้า', position: 'QC Inspector', phone: '087-890-1234', active: true },
-    { id: 'RT008', code: 'RT008', name: 'ธนากร วงศ์ใหญ่', department: 'ROUTER', shift: 'กะบ่าย', position: 'ช่างปฏิบัติการ', phone: '088-901-2345', active: true },
-    { id: 'RT009', code: 'RT009', name: 'ศิริพร ดีพร้อม', department: 'ROUTER', shift: 'กะปกติ', position: 'ธุรการแผนก', phone: '089-012-3456', active: true },
-    { id: 'RT010', code: 'RT010', name: 'ณัฐพล เรืองศรี', department: 'ROUTER', shift: 'กะดึก', position: 'ช่างปฏิบัติการ', phone: '090-123-4567', active: true },
-    { id: 'RT011', code: 'RT011', name: 'พิมพ์ชนก อินทร์ทอง', department: 'ROUTER', shift: 'กะปกติ', position: 'วิศวกรกระบวนการ', phone: '091-234-5678', active: true },
-    { id: 'RT012', code: 'RT012', name: 'อดิศักดิ์ ทองแท้', department: 'ROUTER', shift: 'กะเช้า', position: 'ช่างปฏิบัติการ', phone: '092-345-6789', active: true }
+    { id: 'RT001', code: 'RT001', name: 'สมชาย ใจดี', department: 'ROUTER', shift: 'กะเช้า', position: 'หัวหน้ากะ', phone: '081-234-5678', gender: 'ชาย', active: true },
+    { id: 'RT002', code: 'RT002', name: 'สมหญิง รักงาน', department: 'ROUTER', shift: 'กะเช้า', position: 'ช่างปฏิบัติการ', phone: '082-345-6789', gender: 'หญิง', active: true },
+    { id: 'RT003', code: 'RT003', name: 'วิชัย ขยันดี', department: 'ROUTER', shift: 'กะบ่าย', position: 'ช่างปฏิบัติการ', phone: '083-456-7890', gender: 'ชาย', active: true },
+    { id: 'RT004', code: 'RT004', name: 'นภาพร สว่างใจ', department: 'ROUTER', shift: 'กะบ่าย', position: 'หัวหน้ากะ', phone: '084-567-8901', gender: 'หญิง', active: true },
+    { id: 'RT005', code: 'RT005', name: 'อนุชา พากเพียร', department: 'ROUTER', shift: 'กะดึก', position: 'ช่างปฏิบัติการ', phone: '085-678-9012', gender: 'ชาย', active: true },
+    { id: 'RT006', code: 'RT006', name: 'ปรีชา มั่นคง', department: 'ROUTER', shift: 'กะดึก', position: 'ช่างซ่อมบำรุง', phone: '086-789-0123', gender: 'ชาย', active: true },
+    { id: 'RT007', code: 'RT007', name: 'กมลชนก แสงทอง', department: 'ROUTER', shift: 'กะเช้า', position: 'QC Inspector', phone: '087-890-1234', gender: 'หญิง', active: true },
+    { id: 'RT008', code: 'RT008', name: 'ธนากร วงศ์ใหญ่', department: 'ROUTER', shift: 'กะบ่าย', position: 'ช่างปฏิบัติการ', phone: '088-901-2345', gender: 'ชาย', active: true },
+    { id: 'RT009', code: 'RT009', name: 'ศิริพร ดีพร้อม', department: 'ROUTER', shift: 'กะปกติ', position: 'ธุรการแผนก', phone: '089-012-3456', gender: 'หญิง', active: true },
+    { id: 'RT010', code: 'RT010', name: 'ณัฐพล เรืองศรี', department: 'ROUTER', shift: 'กะดึก', position: 'ช่างปฏิบัติการ', phone: '090-123-4567', gender: 'ชาย', active: true },
+    { id: 'RT011', code: 'RT011', name: 'พิมพ์ชนก อินทร์ทอง', department: 'ROUTER', shift: 'กะปกติ', position: 'วิศวกรกระบวนการ', phone: '091-234-5678', gender: 'หญิง', active: true },
+    { id: 'RT012', code: 'RT012', name: 'อดิศักดิ์ ทองแท้', department: 'ROUTER', shift: 'กะเช้า', position: 'ช่างปฏิบัติการ', phone: '092-345-6789', gender: 'ชาย', active: true }
   ];
 
   function incident(overrides) {
@@ -3941,6 +3948,7 @@ pre, code { overflow-wrap: anywhere; }
       shift: String(firstValue(raw, ['shift', 'กะประจำ', 'กะ'], 'กะเช้า')).trim(),
       position: String(firstValue(raw, ['position', 'ตำแหน่ง'], 'พนักงาน')).trim(),
       phone: String(firstValue(raw, ['phone', 'เบอร์โทร', 'โทรศัพท์'], '')).trim(),
+      gender: String(firstValue(raw, ['gender', 'เพศ', 'sex'], '')).trim(),
       active: normalizeBoolean(firstValue(raw, ['active', 'status', 'สถานะ'], ''), true)
     };
   }
@@ -4923,7 +4931,7 @@ pre, code { overflow-wrap: anywhere; }
   }
 
   function getShiftCounts() {
-    var result = { 'กะเช้า': 0, 'กะบ่าย': 0, 'กะดึก': 0, 'กะปกติ': 0 };
+    var result = { 'กะเช้า': 0, 'กะดึก': 0 };
     state.incidents.forEach(function (item) {
       if (Object.prototype.hasOwnProperty.call(result, item.shift)) {
         result[item.shift] += 1;
@@ -4974,7 +4982,10 @@ pre, code { overflow-wrap: anywhere; }
       var stat = stats[employee.id] || stats[employee.code] || { count: 0, lastDate: '', open: 0 };
       return Object.assign({}, employee, stat);
     }).sort(function (a, b) {
-      return b.count - a.count || String(a.name).localeCompare(String(b.name), 'th');
+      // เรียงตามรหัสพนักงาน (คอลัมน์ A) แบบธรรมชาติ เช่น RT2 ก่อน RT10
+      return String(a.code || a.id || '').localeCompare(
+        String(b.code || b.id || ''), 'th', { numeric: true, sensitivity: 'base' }
+      );
     });
   }
 
@@ -5058,8 +5069,8 @@ pre, code { overflow-wrap: anywhere; }
 
   var SEVERITY_LABELS = ['เล็กน้อย', 'ปานกลาง', 'สูง', 'วิกฤต'];
   var SEVERITY_COLORS = ['#10b981', '#f59e0b', '#f97316', '#ef4444'];
-  var SHIFT_LABELS = ['กะเช้า', 'กะบ่าย', 'กะดึก', 'กะปกติ'];
-  var SHIFT_COLORS = ['#2563eb', '#0ea5e9', '#8b5cf6', '#14b8a6'];
+  var SHIFT_LABELS = ['กะเช้า', 'กะดึก'];
+  var SHIFT_COLORS = ['#2563eb', '#8b5cf6'];
 
   function isAvailable() {
     return typeof global.Chart !== 'undefined';
@@ -5699,18 +5710,37 @@ pre, code { overflow-wrap: anywhere; }
     }
   }
 
-  function initials(name) {
-    var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return '?';
-    if (parts.length === 1) return parts[0].slice(0, 2);
-    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  /* ------------------------------------------------------------------------
+     Gender detection for avatar icons
+     Prefer the explicit "เพศ" field from the sheet (column H); fall back to
+     the name prefix (นาย/นางสาว ฯลฯ) so cards still show a proper icon.
+     ------------------------------------------------------------------------ */
+  function genderOf(employee) {
+    var text = String((employee && employee.gender) || '').trim().toLowerCase();
+    if (text) {
+      if (/หญิง|female|woman|girl/.test(text)) return 'female';
+      if (/ชาย|male|man|boy/.test(text)) return 'male';
+      if (text === 'f') return 'female';
+      if (text === 'm') return 'male';
+    }
+    var name = String((employee && employee.name) || '').trim();
+    if (/^(นาย|เด็กชาย|ด\.ช\.)/.test(name) || /^mr\.?\s/i.test(name)) return 'male';
+    if (/^(นางสาว|นาง|เด็กหญิง|ด\.ญ\.)/.test(name) || /^(ms\.?|mrs\.?|miss)\s/i.test(name)) return 'female';
+    return '';
   }
+
+  var GENDER_GLYPHS = {
+    male: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2.7"/><rect x="8.2" y="9.3" width="7.6" height="6.4" rx="2.3"/><rect x="9.25" y="14.3" width="2.1" height="6.6" rx="1.05"/><rect x="12.65" y="14.3" width="2.1" height="6.6" rx="1.05"/></svg>',
+    female: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="4.9" r="2.7"/><path d="M12 9.1c-2 0-3.35 1.4-3.66 4.3l-.9 3.5c-.16 1.15.6 2.1 1.76 2.1h5.6c1.16 0 1.92-.95 1.76-2.1l-.9-3.5c-.31-2.9-1.66-4.3-3.66-4.3z"/><rect x="10.35" y="17.6" width="1.35" height="4.2" rx="0.67"/><rect x="12.3" y="17.6" width="1.35" height="4.2" rx="0.67"/></svg>',
+    unknown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2"/></svg>'
+  };
 
   /* ------------------------------------------------------------------------
      Per-employee visual identity
-     A stable hash of the employee id picks one vivid gradient; the position
-     picks a role glyph. The same avatar is reused in every view so a person
-     is instantly recognisable in the form, logs table and employee grid.
+     A stable hash of the employee id picks one vivid gradient; the gender
+     picks the person icon; the position picks a role glyph. The same avatar
+     is reused in every view so a person is instantly recognisable in the
+     form, logs table and employee grid.
      ------------------------------------------------------------------------ */
   var EMP_PALETTES = [
     { a: '#4f46e5', b: '#06b6d4', glow: 'rgba(79, 70, 229, 0.5)' },
@@ -5798,11 +5828,15 @@ pre, code { overflow-wrap: anywhere; }
   function employeeAvatar(employee, size) {
     var data = employee || {};
     var palette = avatarPaletteFor(data);
+    var gender = genderOf(data);
+    var genderClass = gender ? ' emp-avatar--' + gender : '';
     var sizeClass = size === 'sm' ? ' emp-avatar--sm'
       : size === 'lg' ? ' emp-avatar--lg'
         : size === 'xs' ? ' emp-avatar--xs' : '';
-    return '<span class="emp-avatar' + sizeClass + '" style="' + avatarCssVars(palette) + '" aria-hidden="true">' +
-      '<span class="emp-avatar-initials">' + escapeHtml(initials(data.name)) + '</span>' +
+    return '<span class="emp-avatar' + genderClass + sizeClass + '" role="img" aria-label="' +
+      escapeHtml((gender === 'male' ? 'เพศชาย' : gender === 'female' ? 'เพศหญิง' : 'พนักงาน') + (data.name ? ' • ' + data.name : '')) +
+      '" style="' + avatarCssVars(palette) + '">' +
+      '<span class="emp-avatar-gender">' + (GENDER_GLYPHS[gender] || GENDER_GLYPHS.unknown) + '</span>' +
       '<span class="emp-avatar-role">' + roleGlyphFor(data.position) + '</span>' +
       '</span>';
   }
@@ -6231,7 +6265,7 @@ pre, code { overflow-wrap: anywhere; }
     if (!dom.fieldEmployee) return;
     var previous = dom.fieldEmployee.value;
     var employees = Store.state.employees.slice().sort(function (a, b) {
-      return String(a.code || '').localeCompare(String(b.code || ''), 'th');
+      return String(a.code || '').localeCompare(String(b.code || ''), 'th', { numeric: true });
     });
     var activeEmployees = employees.filter(function (employee) {
       return employee.active !== false;
@@ -6644,7 +6678,8 @@ pre, code { overflow-wrap: anywhere; }
         var avatarData = {
           id: incident.employeeId,
           name: incident.employeeName,
-          position: employee ? employee.position : ''
+          position: employee ? employee.position : '',
+          gender: employee ? employee.gender : ''
         };
         return '<tr>' +
           '<td><span class="cell-id">' + escapeHtml(incident.id) + '</span></td>' +
@@ -6735,7 +6770,8 @@ pre, code { overflow-wrap: anywhere; }
       dom.editModalAvatar.innerHTML = employeeAvatar({
         id: incident.employeeId,
         name: incident.employeeName,
-        position: editEmployee ? editEmployee.position : ''
+        position: editEmployee ? editEmployee.position : '',
+        gender: editEmployee ? editEmployee.gender : ''
       }, 'sm');
     }
     dom.editModalEmp.textContent = (incident.employeeName || '-') + (incident.employeeId ? ' (' + incident.employeeId + ')' : '');

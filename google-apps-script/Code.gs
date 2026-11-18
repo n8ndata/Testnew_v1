@@ -19,7 +19,7 @@ var CONFIG = {
   INCIDENT_SHEET: 'บันทึกความผิดพลาด',
   TIMEZONE: Session.getScriptTimeZone() || 'Asia/Bangkok',
   EMPLOYEE_HEADERS: [
-    'รหัสพนักงาน', 'ชื่อ-นามสกุล', 'แผนก', 'กะประจำ', 'ตำแหน่ง', 'เบอร์โทร', 'สถานะ'
+    'รหัสพนักงาน', 'ชื่อ-นามสกุล', 'แผนก', 'กะประจำ', 'ตำแหน่ง', 'เบอร์โทร', 'สถานะ', 'เพศ'
   ],
   INCIDENT_HEADERS: [
     'ID', 'วันที่บันทึก', 'วันที่เกิดเหตุ', 'กะ', 'รหัสพนักงาน', 'ชื่อพนักงาน',
@@ -64,18 +64,18 @@ var VALID = {
 };
 
 var EMPLOYEE_SEED = [
-  ['RT001', 'สมชาย ใจดี', 'ROUTER', 'กะเช้า', 'หัวหน้ากะ', '081-234-5678', 'ใช้งาน'],
-  ['RT002', 'สมหญิง รักงาน', 'ROUTER', 'กะเช้า', 'ช่างปฏิบัติการ', '082-345-6789', 'ใช้งาน'],
-  ['RT003', 'วิชัย ขยันดี', 'ROUTER', 'กะบ่าย', 'ช่างปฏิบัติการ', '083-456-7890', 'ใช้งาน'],
-  ['RT004', 'นภาพร สว่างใจ', 'ROUTER', 'กะบ่าย', 'หัวหน้ากะ', '084-567-8901', 'ใช้งาน'],
-  ['RT005', 'อนุชา พากเพียร', 'ROUTER', 'กะดึก', 'ช่างปฏิบัติการ', '085-678-9012', 'ใช้งาน'],
-  ['RT006', 'ปรีชา มั่นคง', 'ROUTER', 'กะดึก', 'ช่างซ่อมบำรุง', '086-789-0123', 'ใช้งาน'],
-  ['RT007', 'กมลชนก แสงทอง', 'ROUTER', 'กะเช้า', 'QC Inspector', '087-890-1234', 'ใช้งาน'],
-  ['RT008', 'ธนากร วงศ์ใหญ่', 'ROUTER', 'กะบ่าย', 'ช่างปฏิบัติการ', '088-901-2345', 'ใช้งาน'],
-  ['RT009', 'ศิริพร ดีพร้อม', 'ROUTER', 'กะปกติ', 'ธุรการแผนก', '089-012-3456', 'ใช้งาน'],
-  ['RT010', 'ณัฐพล เรืองศรี', 'ROUTER', 'กะดึก', 'ช่างปฏิบัติการ', '090-123-4567', 'ใช้งาน'],
-  ['RT011', 'พิมพ์ชนก อินทร์ทอง', 'ROUTER', 'กะปกติ', 'วิศวกรกระบวนการ', '091-234-5678', 'ใช้งาน'],
-  ['RT012', 'อดิศักดิ์ ทองแท้', 'ROUTER', 'กะเช้า', 'ช่างปฏิบัติการ', '092-345-6789', 'ใช้งาน']
+  ['RT001', 'สมชาย ใจดี', 'ROUTER', 'กะเช้า', 'หัวหน้ากะ', '081-234-5678', 'ใช้งาน', 'ชาย'],
+  ['RT002', 'สมหญิง รักงาน', 'ROUTER', 'กะเช้า', 'ช่างปฏิบัติการ', '082-345-6789', 'ใช้งาน', 'หญิง'],
+  ['RT003', 'วิชัย ขยันดี', 'ROUTER', 'กะบ่าย', 'ช่างปฏิบัติการ', '083-456-7890', 'ใช้งาน', 'ชาย'],
+  ['RT004', 'นภาพร สว่างใจ', 'ROUTER', 'กะบ่าย', 'หัวหน้ากะ', '084-567-8901', 'ใช้งาน', 'หญิง'],
+  ['RT005', 'อนุชา พากเพียร', 'ROUTER', 'กะดึก', 'ช่างปฏิบัติการ', '085-678-9012', 'ใช้งาน', 'ชาย'],
+  ['RT006', 'ปรีชา มั่นคง', 'ROUTER', 'กะดึก', 'ช่างซ่อมบำรุง', '086-789-0123', 'ใช้งาน', 'ชาย'],
+  ['RT007', 'กมลชนก แสงทอง', 'ROUTER', 'กะเช้า', 'QC Inspector', '087-890-1234', 'ใช้งาน', 'หญิง'],
+  ['RT008', 'ธนากร วงศ์ใหญ่', 'ROUTER', 'กะบ่าย', 'ช่างปฏิบัติการ', '088-901-2345', 'ใช้งาน', 'ชาย'],
+  ['RT009', 'ศิริพร ดีพร้อม', 'ROUTER', 'กะปกติ', 'ธุรการแผนก', '089-012-3456', 'ใช้งาน', 'หญิง'],
+  ['RT010', 'ณัฐพล เรืองศรี', 'ROUTER', 'กะดึก', 'ช่างปฏิบัติการ', '090-123-4567', 'ใช้งาน', 'ชาย'],
+  ['RT011', 'พิมพ์ชนก อินทร์ทอง', 'ROUTER', 'กะปกติ', 'วิศวกรกระบวนการ', '091-234-5678', 'ใช้งาน', 'หญิง'],
+  ['RT012', 'อดิศักดิ์ ทองแท้', 'ROUTER', 'กะเช้า', 'ช่างปฏิบัติการ', '092-345-6789', 'ใช้งาน', 'ชาย']
 ];
 
 /* ============================================================================
@@ -213,7 +213,7 @@ function formatEmployeeSheet_(sheet) {
     .setVerticalAlignment('middle');
   sheet.setRowHeight(1, 36);
 
-  var widths = [110, 210, 100, 110, 150, 140, 100];
+  var widths = [110, 210, 100, 110, 150, 140, 100, 90];
   widths.forEach(function (width, index) {
     sheet.setColumnWidth(index + 1, width);
   });
@@ -229,6 +229,12 @@ function formatEmployeeSheet_(sheet) {
     .setAllowInvalid(false)
     .build();
   sheet.getRange(2, 7, Math.max(1, sheet.getMaxRows() - 1), 1).setDataValidation(statusValidation);
+
+  var genderValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['ชาย', 'หญิง'], true)
+    .setAllowInvalid(true)
+    .build();
+  sheet.getRange(2, 8, Math.max(1, sheet.getMaxRows() - 1), 1).setDataValidation(genderValidation);
 }
 
 function formatIncidentSheet_(sheet) {
@@ -624,10 +630,14 @@ function readEmployees_(sheet) {
       shift: clean_(row[3]) || 'กะเช้า',
       position: clean_(row[4]),
       phone: clean_(row[5]),
-      active: !/^(ไม่ใช้งาน|ลาออก|inactive|false|0|no|leave|resigned)$/i.test(clean_(row[6]))
+      active: !/^(ไม่ใช้งาน|ลาออก|inactive|false|0|no|leave|resigned)$/i.test(clean_(row[6])),
+      gender: clean_(row[7]) || inferGenderFromName_(clean_(row[1]))
     };
   }).filter(function (employee) {
     return employee.code !== '' || employee.name !== '';
+  }).sort(function (a, b) {
+    // แสดงลำดับตามรหัสพนักงาน (คอลัมน์ A) แบบ sort เลขให้เป็นธรรมชาติ เช่น RT2 < RT10
+    return a.code.localeCompare(b.code, 'th', { numeric: true, sensitivity: 'base' });
   });
 }
 
@@ -709,6 +719,14 @@ function generateIncidentId_(sheet, date) {
 /* ============================================================================
    GENERAL HELPERS
    ============================================================================ */
+function inferGenderFromName_(name) {
+  var text = clean_(name);
+  if (!text) return '';
+  if (/^(นาย|เด็กชาย|ด\.ช\.)/.test(text) || /^mr\.?\s/i.test(text)) return 'ชาย';
+  if (/^(นางสาว|นาง|เด็กหญิง|ด\.ญ\.)/.test(text) || /^(ms\.?|mrs\.?|miss)\s/i.test(text)) return 'หญิง';
+  return '';
+}
+
 function getSpreadsheet_() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   if (!spreadsheet) {
